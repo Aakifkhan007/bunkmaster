@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BunkMaster — {% block title %}{% endblock %}</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    :root { 
+      --bg:#080b18; 
+      --surface:#0f1428; 
+      --card:#131929; 
+      --border:rgba(255,255,255,.07); 
+      --green:#3dffa0; 
+      --red:#ff4d6d; 
+      --blue:#4d9eff; 
+      --text:#e2e8f0; 
+      --subtext:#94a3b8; 
+    }
+
+    /* Keep this for specific elements, but NOT the whole body */
+    [x-cloak] { display: none !important; }
+
+    body { 
+      font-family:'DM Sans',sans-serif; 
+      background:var(--bg); 
+      color:var(--text); 
+      min-height:100vh; 
+      margin:0; 
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+    
+    .stat-tile { 
+      background:var(--card); 
+      border:1px solid var(--border); 
+      border-radius:16px; 
+      padding:20px; 
+      transition:0.3s; 
+    }
+
+    .btn-primary { background:linear-gradient(135deg,#1fcc77,var(--green)); color:#060910; font-weight:700; border-radius:12px; padding:12px 24px; cursor:pointer; border:none; }
+    .btn-blue { background:linear-gradient(135deg,#2266cc,var(--blue)); color:white; font-weight:700; border-radius:12px; padding:12px 24px; cursor:pointer; border:none; }
+    .btn-ghost { background:rgba(255,255,255,0.05); color:var(--subtext); font-weight:600; border:1px solid var(--border); border-radius:10px; padding:8px 16px; cursor:pointer; }
+
+    .field { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:12px; color:white; padding:12px; outline:none; transition: border-color 0.2s; }
+    .field:focus { border-color: var(--blue); }
+    .field-label { font-size:10px; font-weight:800; text-transform:uppercase; color:var(--blue); margin-bottom:6px; display:block; letter-spacing:0.05em; }
+
+    .topnav { 
+      background:rgba(8,11,24,.8); 
+      backdrop-filter:blur(15px); 
+      border-bottom:1px solid var(--border); 
+      padding:0 24px; 
+      height:60px; 
+      display:flex; 
+      align-items:center; 
+      justify-content:space-between; 
+      position:sticky; 
+      top:0; 
+      z-index:50; 
+    }
+
+    .nav-logo { 
+      font-family:'Syne',sans-serif; 
+      font-weight:800; 
+      font-size:22px; 
+      background:linear-gradient(90deg,var(--green),var(--blue)); 
+      -webkit-background-clip:text; 
+      -webkit-text-fill-color:transparent; 
+      text-decoration:none; 
+    }
+
+    .tbl { width: 100%; border-collapse: collapse; }
+    .tbl th { text-align: left; padding: 12px; font-size: 11px; color: var(--subtext); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    .tbl td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+    input:-webkit-autofill { 
+      -webkit-text-fill-color: white !important; 
+      -webkit-box-shadow: 0 0 0px 1000px #0f1428 inset !important; 
+    }
+
+    .flash-error { background:rgba(255,77,109,.1); border:1px solid rgba(255,77,109,0.3); color:var(--red); padding:12px; border-radius:10px; margin-bottom:20px; font-size:13px; }
+    .flash-success { background:rgba(61,255,160,.1); border:1px solid rgba(61,255,160,0.3); color:var(--green); padding:12px; border-radius:10px; margin-bottom:20px; font-size:13px; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  
+  {% if session.user %}
+  <nav class="topnav">
+    <a href="/" class="nav-logo">BunkMaster</a>
+    <div style="display:flex; align-items:center; gap:15px;">
+      <div style="text-align: right; line-height: 1.2;">
+        <span style="display: block; font-size:12px; font-weight: 700; color: var(--text);">{{ session.name }}</span>
+        <span style="font-size: 10px; color: var(--subtext); text-transform: uppercase;">{{ session.role }}</span>
+      </div>
+      <a href="/logout" style="font-size:11px; color:var(--red); text-decoration:none; border:1px solid rgba(255,77,109,0.2); padding:6px 12px; border-radius:8px;">Logout</a>
+    </div>
+  </nav>
+  {% endif %}
+
+  <div style="max-width: 900px; margin: 0 auto; padding: 20px 20px 0;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="{% if category == 'error' %}flash-error{% else %}flash-success{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  {% block content %}{% endblock %}
+</body>
+</html>

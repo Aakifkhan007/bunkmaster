@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BunkMaster — Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: #080b18; --surface: #0f1428; --card: #131929;
+      --border: rgba(255,255,255,.07);
+      --green: #3dffa0; --blue: #4d9eff; --red: #ff4d6d;
+      --text: #e2e8f0; --subtext: #94a3b8; --muted: #4a5568;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 45% at 10% 0%, rgba(61,255,160,.07) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 40% at 90% 20%, rgba(77,158,255,.06) 0%, transparent 65%),
+        radial-gradient(ellipse 55% 50% at 50% 100%, rgba(255,77,109,.04) 0%, transparent 65%),
+        var(--bg);
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 6px; text-align: center;
+    }
+    .tagline { color: var(--subtext); font-size: 14px; text-align: center; margin-bottom: 48px; }
+
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 480px; margin-bottom: 32px; }
+
+    .role-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .25s, transform .2s, box-shadow .25s;
+      text-decoration: none; color: inherit;
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
+    .role-card:hover { transform: translateY(-4px); }
+    .role-card.student:hover {
+      border-color: rgba(61,255,160,.5);
+      box-shadow: 0 16px 48px rgba(61,255,160,.12);
+    }
+    .role-card.teacher:hover {
+      border-color: rgba(77,158,255,.5);
+      box-shadow: 0 16px 48px rgba(77,158,255,.12);
+    }
+    .role-icon {
+      width: 64px; height: 64px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+    }
+    .role-icon.green { background: rgba(61,255,160,.1); }
+    .role-icon.blue  { background: rgba(77,158,255,.1); }
+    .role-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; }
+    .role-desc  { font-size: 12px; color: var(--subtext); line-height: 1.5; }
+
+    .flash-error {
+      background: rgba(255,77,109,.1); border: 1px solid rgba(255,77,109,.3);
+      color: #ff4d6d; border-radius: 10px; padding: 10px 16px;
+      font-size: 13px; width: 100%; max-width: 480px; margin-bottom: 16px; text-align: center;
+    }
+
+    @media (max-width: 400px) { .role-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="logo">BunkMaster</div>
+  <p class="tagline">Attendance tracking · smart bunk calculator · class reports</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+    <div class="flash-error">{{ msg }}</div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+
+  <div class="role-grid">
+    <a href="/login/student" class="role-card student">
+      <div class="role-icon green">🎓</div>
+      <div>
+        <div class="role-title" style="color:#3dffa0;">Student</div>
+        <div class="role-desc" style="margin-top:6px;">Track your attendance, check bunk eligibility &amp; view class reports</div>
+      </div>
+    </a>
+    <a href="/login/teacher" class="role-card teacher">
+      <div class="role-icon blue">👨‍🏫</div>
+      <div>
+        <div class="role-title" style="color:#4d9eff;">Teacher</div>
+        <div class="role-desc" style="margin-top:6px;">Mark attendance, manage subjects &amp; view student performance</div>
+      </div>
+    </a>
+  </div>
+
+  <p style="font-size:12px;color:var(--muted);">Select your role to continue</p>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+
+  <div style="margin-bottom: 32px;">
+    <p style="font-size: 11px; color: var(--subtext); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px;">Teacher Portal</p>
+    <h1 style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 32px; color: var(--text);">{{ teacher.name }} <span style="font-size: 18px;">👨‍🏫</span></h1>
+    <p style="font-size: 14px; color: var(--subtext); margin-top: 4px;">{{ teacher.dept }} · Employee ID: <span style="font-family: 'JetBrains Mono', monospace; color: var(--blue); font-weight: 600;">{{ teacher.empid }}</span></p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;">
+    <div class="stat-tile">
+      <p style="font-size: 28px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--text);">{{ total_students }}</p>
+      <p style="font-size: 11px; color: var(--subtext); font-weight: 700; text-transform: uppercase; margin-top: 4px;">Students</p>
+    </div>
+    <div class="stat-tile">
+      <p style="font-size: 28px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--blue);">{{ subjects|length }}</p>
+      <p style="font-size: 11px; color: var(--subtext); font-weight: 700; text-transform: uppercase; margin-top: 4px;">Subjects</p>
+    </div>
+    <div class="stat-tile">
+      <p style="font-size: 28px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--green);">{{ safe_students }}</p>
+      <p style="font-size: 11px; color: var(--subtext); font-weight: 700; text-transform: uppercase; margin-top: 4px;">Above 75%</p>
+    </div>
+    <div class="stat-tile">
+      <p style="font-size: 28px; font-weight: 800; font-family: 'Syne', sans-serif; color: var(--red);">{{ risky_students }}</p>
+      <p style="font-size: 11px; color: var(--subtext); font-weight: 700; text-transform: uppercase; margin-top: 4px;">At Risk</p>
+    </div>
+  </div>
+
+  <h2 style="font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--subtext); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 16px;">Subjects I Teach</h2>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px;">
+    {% for sub in subjects %}
+    <div class="stat-tile" style="text-align: left; padding: 20px;">
+      <span class="badge" style="background: rgba(77, 158, 255, .12); color: var(--blue); margin-bottom: 10px; display: inline-block;">{{ sub.code }}</span>
+      <h3 style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: var(--text); margin-bottom: 4px;">{{ sub.name }}</h3>
+      <p style="font-size: 12px; color: var(--subtext);">{{ sub.enrolled }} students enrolled</p>
+      
+      <div style="margin-top: 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--subtext); margin-bottom: 6px;">
+          <span style="font-weight: 600;">Avg attendance</span>
+          <span style="color: var(--blue); font-weight: 700;">{{ sub.avg_pct }}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="background: linear-gradient(90deg, #2266cc, var(--blue)); width: {{ sub.avg_pct }}%;"></div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if risky_list %}
+  <div style="background: rgba(255, 77, 109, .04); border: 1px solid rgba(255, 77, 109, .15); border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+    <h3 style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; color: var(--red); margin-bottom: 16px;">🚨 Students Requiring Attention (below 75%)</h3>
+    <div style="overflow-x: auto;">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Roll No</th>
+            <th>Subject</th>
+            <th>Attendance %</th>
+            <th>Needed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in risky_list %}
+          <tr>
+            <td style="font-weight: 700; color: var(--text);">{{ r.name }}</td>
+            <td><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--subtext);">{{ r.rollno }}</span></td>
+            <td style="color: var(--subtext);">{{ r.subject }}</td>
+            <td><span style="color: var(--red); font-weight: 800; font-family: 'JetBrains Mono', monospace;">{{ r.pct }}%</span></td>
+            <td><span class="badge badge-warn">{{ r.need }} more classes</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="/teacher/mark" style="text-decoration: none;">
+      <button class="btn-blue" style="display: flex; align-items: center; gap: 10px; padding: 14px 24px;">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="17" rx="3" stroke="currentColor" stroke-width="1.8"/></svg>
+        Mark Today's Attendance
+      </button>
+    </a>
+    <a href="/teacher/students" style="text-decoration: none;">
+      <button class="btn-ghost" style="display: flex; align-items: center; gap: 10px; padding: 14px 24px;">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        View All Enrolled Students
+      </button>
+    </a>
+  </div>
+
+</div>
+{% endblock %}

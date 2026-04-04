@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Attendance{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div style="margin-bottom:24px;">
+    <h1 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;margin-bottom:4px;">Attendance Overview</h1>
+    <p style="font-size:13px;color:var(--subtext);">Detailed breakdown of every subject · {{ student.name }}</p>
+  </div>
+
+  <!-- ── Class Report Table ── -->
+  <div class="card" style="margin-bottom:24px;">
+    <div style="padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;">Class Report</h2>
+      <span style="font-size:12px;color:var(--subtext);">Threshold: <b style="color:#3dffa0;">75%</b></span>
+    </div>
+    <div style="overflow-x:auto;margin-top:12px;">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Code</th>
+            <th>Teacher</th>
+            <th>Attended</th>
+            <th>Total</th>
+            <th>Missed</th>
+            <th>%</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in subjects %}
+          {% set is_safe = s.percent >= 75 %}
+          <tr>
+            <td style="font-weight:600;color:var(--text);min-width:150px;">{{ s.name }}</td>
+            <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--subtext);">{{ s.code }}</span></td>
+            <td style="color:var(--subtext);font-size:12px;">{{ s.teacher }}</td>
+            <td style="font-weight:600;color:#3dffa0;">{{ s.attended }}</td>
+            <td>{{ s.total }}</td>
+            <td style="color:#ff4d6d;">{{ s.total - s.attended }}</td>
+            <td>
+              <span style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;
+                           color:{% if is_safe %}#3dffa0{% else %}#ff4d6d{% endif %};">
+                {{ s.percent | int }}%
+              </span>
+            </td>
+            <td>
+              {% if is_safe %}
+              <span class="badge badge-safe">Safe · {{ s.bunk_count }} left</span>
+              {% else %}
+              <span class="badge badge-warn">Need {{ s.need_count }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background:rgba(255,255,255,.02);">
+            <td colspan="3" style="font-weight:700;color:var(--subtext);font-size:12px;letter-spacing:.04em;text-transform:uppercase;">TOTAL / OVERALL</td>
+            <td style="font-weight:700;color:#3dffa0;">{{ subjects|sum(attribute='attended') }}</td>
+            <td style="font-weight:700;">{{ subjects|sum(attribute='total') }}</td>
+            <td style="font-weight:700;color:#ff4d6d;">{{ subjects|sum(attribute='total') - subjects|sum(attribute='attended') }}</td>
+            <td colspan="2">
+              <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:#4d9eff;">{{ overall_pct }}%</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Per-subject calendar grids ── -->
+  <h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--subtext);letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px;">Per-Subject Logs</h2>
+
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    {% for s in subjects %}
+    <div class="card {% if s.percent >= 75 %}card-safe{% else %}card-warn{% endif %}">
+      <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <span class="badge {% if s.percent >= 75 %}badge-safe{% else %}badge-warn{% endif %}" style="margin-bottom:5px;display:inline-block;">{{ s.code }}</span>
+          <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;">{{ s.name }}</h3>
+          <p style="font-size:11px;color:var(--subtext);margin-top:2px;">{{ s.teacher }}</p>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;
+                       color:{% if s.percent >= 75 %}#3dffa0{% else %}#ff4d6d{% endif %};">
+            {{ s.percent | int }}%
+          </span>
+          <p style="font-size:11px;color:var(--subtext);margin-top:2px;">{{ s.attended }}/{{ s.total }} classes</p>
+        </div>
+      </div>
+      <div style="padding:0 20px 20px;">
+        <div class="progress-track" style="margin-bottom:12px;">
+          <div class="progress-fill {% if s.percent >= 75 %}safe{% else %}warn{% endif %}"
+               data-width="{{ s.percent }}" style="width:0%"></div>
+        </div>
+        <div class="cal-grid">
+          {% for day in s.calendar %}
+          <div class="cal-day {% if day.status == 1 %}present{% elif day.status == 0 %}absent{% else %}holiday{% endif %}"
+               title="{{ day.date }}">
+            {% if day.status == 1 %}✓{% elif day.status == 0 %}✕{% else %}TL{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.progress-fill[data-width]').forEach(function(b){
+    setTimeout(function(){ b.style.width = b.dataset.width + '%'; }, 80);
+  });
+});
+</script>
+{% endblock %}

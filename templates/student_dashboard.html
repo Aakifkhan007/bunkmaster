@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+  .card-animate { animation: fadeUp .5s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+  
+  /* Clear Box Styling */
+  .subject-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 16px;
+    padding: 24px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .subject-box:hover {
+    border-color: rgba(255,255,255,0.15);
+  }
+  .box-safe { border-left: 6px solid var(--green); }
+  .box-warn { border-left: 6px solid var(--red); }
+
+  /* Date-wise Grid Styling */
+  .attendance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(55px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+  }
+  .date-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+  }
+  .status-1 { background: rgba(61, 255, 160, 0.12); color: var(--green); border-color: rgba(61, 255, 160, 0.25); }
+  .status-0 { background: rgba(255, 77, 109, 0.12); color: var(--red); border-color: rgba(255, 77, 109, 0.25); }
+  .status-TL { background: rgba(255, 255, 255, 0.05); color: var(--subtext); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width: 900px; margin: 0 auto; padding: 32px 20px;">
+
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;">
+    <div>
+      <p style="font-size:12px;color:var(--subtext);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Welcome back</p>
+      <h1 style="font-family:'Syne',sans-serif;font-weight:800;font-size:26px;">{{ student.name }} <span style="font-size:16px;">👋</span></h1>
+      <p style="font-size:13px;color:var(--subtext);margin-top:3px;">{{ student.course }} · {{ student.year }} Year · Roll No: <span style="font-family:'JetBrains Mono',monospace;color:var(--green);">{{ student.rollno }}</span></p>
+    </div>
+    <a href="/attendance" style="text-decoration:none;">
+      <button class="btn-primary" style="font-size:13px;padding:10px 20px;">
+        + Add / Update
+      </button>
+    </a>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;">
+    <div class="stat-tile">
+      <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:var(--text);">{{ subjects|length }}</p>
+      <p style="font-size:11px;color:var(--subtext);font-weight:600;margin-top:3px;">Subjects</p>
+    </div>
+    <div class="stat-tile">
+      <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#3dffa0;">{{ safe_count }}</p>
+      <p style="font-size:11px;color:var(--subtext);font-weight:600;margin-top:3px;">Safe ✓</p>
+    </div>
+    <div class="stat-tile">
+      <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#ff4d6d;">{{ warn_count }}</p>
+      <p style="font-size:11px;color:var(--subtext);font-weight:600;margin-top:3px;">At Risk !</p>
+    </div>
+    <div class="stat-tile">
+      <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#4d9eff;">{{ overall_pct }}%</p>
+      <p style="font-size:11px;color:var(--subtext);font-weight:600;margin-top:3px;">Overall</p>
+    </div>
+  </div>
+
+  <h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--subtext);letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px;">Your Subjects</h2>
+
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    {% for s in subjects %}
+    <div class="subject-box {% if s.is_safe %}box-safe{% else %}box-warn{% endif %} card-animate"
+         style="animation-delay:{{ loop.index0 * 0.07 }}s"
+         x-data="{ open: false }">
+
+      <div style="cursor:pointer;" @click="open = !open">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span class="badge {% if s.is_safe %}badge-safe{% else %}badge-warn{% endif %}">{{ s.code }}</span>
+              <span style="font-size:11px;color:var(--subtext);font-family:'JetBrains Mono',monospace;">
+                {% if s.is_safe %}✦ {{ s.bunk_count }} bunkable{% else %}⚠ {{ s.need_count }} needed{% endif %}
+              </span>
+            </div>
+            <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--text);">{{ s.name }}</h3>
+            <p style="font-size:13px;color:var(--subtext);">{{ s.teacher }}</p>
+          </div>
+
+          <div style="text-align: right;">
+            <p style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;margin:0;color:{% if s.is_safe %}var(--green){% else %}var(--red){% endif %};">
+              {{ s.percent | int }}%
+            </p>
+          </div>
+        </div>
+
+        <div class="progress-track" style="margin-top:16px;">
+          <div class="progress-fill {% if s.is_safe %}safe{% else %}warn{% endif %}"
+               data-width="{{ s.percent }}" style="width:0%"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+          <div style="display:flex;gap:16px;font-size:12px;color:var(--subtext);">
+            <span><b style="color:var(--text);">{{ s.attended }}</b> attended</span>
+            <span><b style="color:var(--text);">{{ s.total }}</b> total</span>
+          </div>
+          <button class="btn-ghost" style="padding:4px 12px; font-size:11px;">
+            <span x-text="open ? 'Hide Details ▲' : 'View Details ▼'"></span>
+          </button>
+        </div>
+      </div>
+
+      <div x-show="open" x-cloak style="border-top:1px solid var(--border); margin-top:16px; padding-top:16px;">
+        <p style="font-size:11px;font-weight:700;color:var(--subtext);text-transform:uppercase;margin-bottom:12px;">Attendance Log (Date-wise)</p>
+        <div class="attendance-grid">
+          {% for day in s.calendar %}
+          <div class="date-card status-{{ day.status }}">
+            <span style="font-size:9px; margin-bottom:2px; font-weight:600;">{{ day.date }}</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:800;">
+                {% if day.status == 1 %}✓{% elif day.status == 0 %}✕{% else %}TL{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.progress-fill[data-width]').forEach(function(b){
+    setTimeout(function(){ b.style.width = b.dataset.width + '%'; }, 100);
+  });
+});
+</script>
+{% endblock %}

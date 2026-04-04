@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width:640px;">
+
+  <h1 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;margin-bottom:24px;">My Profile</h1>
+
+  <div class="card" style="margin-bottom:20px;padding:28px;">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;flex-wrap:wrap;">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#1fcc77,#3dffa0);
+                  display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">
+        🎓
+      </div>
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;">{{ student.name }}</h2>
+        <p style="font-size:13px;color:var(--subtext);margin-top:3px;">{{ student.email }}</p>
+        <span class="badge badge-safe" style="margin-top:6px;display:inline-block;">Student</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      {# Using .get or default to prevent crashes on missing DB columns #}
+      {% set info = [
+        ('Roll Number', student.rollno),
+        ('Course', student.course),
+        ('Year', student.year ~ ' Year'),
+        ('Division', student.division if student.division is defined else 'Not Assigned'),
+        ('Contact', student.phone if student.phone is defined else 'Not Provided'),
+        ('Department', student.dept),
+      ] %}
+      {% for label, val in info %}
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+        <p style="font-size:10px;font-weight:700;color:var(--subtext);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">{{ label }}</p>
+        <p style="font-size:14px;font-weight:600;color:var(--text);">{{ val }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px;">
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:14px;">Attendance Summary</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <div class="stat-tile">
+        <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#3dffa0;">{{ overall_pct }}%</p>
+        <p style="font-size:10px;color:var(--subtext);font-weight:600;letter-spacing:.04em;margin-top:3px;">Overall</p>
+      </div>
+      <div class="stat-tile">
+        <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#3dffa0;">{{ safe_count }}</p>
+        <p style="font-size:10px;color:var(--subtext);font-weight:600;letter-spacing:.04em;margin-top:3px;">Safe Subjects</p>
+      </div>
+      <div class="stat-tile">
+        <p style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#ff4d6d;">{{ warn_count }}</p>
+        <p style="font-size:10px;color:var(--subtext);font-weight:600;letter-spacing:.04em;margin-top:3px;">At Risk</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

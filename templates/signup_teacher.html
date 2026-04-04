@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Teacher Registration{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Fix for browser auto-fill turning boxes white ── */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: white !important;
+    -webkit-box-shadow: 0 0 0px 1000px #0f1428 inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .glass-card {
+    background: rgba(19, 25, 41, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(77, 158, 255, 0.2);
+    border-radius: 28px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .input-group {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+  }
+
+  .input-group:focus-within {
+    border-color: var(--blue);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 4px rgba(77, 158, 255, 0.1);
+  }
+
+  .input-field {
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    width: 100%;
+    font-size: 15px;
+    outline: none !important;
+    margin-top: 4px;
+  }
+
+  /* Specific styling for the dropdown select */
+  select.input-field {
+    cursor: pointer;
+    appearance: none; /* Removes default browser arrow */
+  }
+
+  .floating-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--blue);
+    display: block;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page" style="max-width: 480px; margin: 0 auto; padding: 60px 20px;">
+  
+  <div class="glass-card" style="padding: 48px 40px;">
+    
+    <header style="text-align: center; margin-bottom: 36px;">
+      <h1 style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; color: var(--blue); letter-spacing: -1.5px; margin-bottom: 8px;">
+        Teacher Portal
+      </h1>
+      <p style="color: var(--subtext); font-size: 14px; font-weight: 500;">
+        Join the faculty network of BunkMaster
+      </p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+      <div class="flash-{{ cat }}" style="margin-bottom: 20px; text-align: center;">{{ msg }}</div>
+      {% endfor %}{% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/signup/teacher" style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <div class="input-group">
+        <label class="floating-label">Full Name</label>
+        <input type="text" name="name" class="input-field" placeholder="e.g. Dr. Rajesh Kumar" required>
+      </div>
+
+      <div class="input-group">
+        <label class="floating-label">Assign Subject</label>
+        <select name="subject_code" class="input-field" required>
+          <option value="" disabled selected>Select your subject...</option>
+          {% for sub in subjects %}
+            <option value="{{ sub.code }}" style="background: #0f1428; color: white;">
+                {{ sub.name }} ({{ sub.code }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="input-group">
+          <label class="floating-label">Employee ID</label>
+          <input type="text" name="empid" class="input-field" placeholder="TCH001" required>
+        </div>
+        <div class="input-group">
+          <label class="floating-label">Department</label>
+          <input type="text" name="dept" class="input-field" value="Computer Science">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="floating-label">Secure Password</label>
+        <input type="password" name="password" class="input-field" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn-blue" style="width: 100%; padding: 18px; font-size: 16px; border-radius: 16px; margin-top: 10px;">
+        Complete Registration
+      </button>
+
+    </form>
+
+    <footer style="margin-top: 32px; text-align: center;">
+      <p style="color: var(--subtext); font-size: 13px;">
+        Already have admin access? 
+        <a href="/login/teacher" style="color: var(--blue); text-decoration: none; font-weight: 700; margin-left: 4px;">Log In</a>
+      </p>
+    </footer>
+
+  </div>
+
+</div>
+{% endblock %}
