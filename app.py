@@ -54,7 +54,6 @@ def enrich_student_data(rollno):
     for code, meta in SUBJECTS_META.items():
         teacher_obj = Teacher.query.filter_by(subject_code=code).first()
         teacher_name = teacher_obj.name if teacher_obj else "TBA"
-        
         records = AttendanceRecord.query.filter_by(student_rollno=rollno, subject_code=code).all()
         
         attended = sum(1 for r in records if r.status == 'present')
@@ -62,7 +61,6 @@ def enrich_student_data(rollno):
         
         pct = round(attended / total * 100, 1) if total > 0 else 0
         is_safe = pct >= 75
-        
         bunk = int((attended - 0.75 * total) / 0.75) if is_safe and total > 0 else 0
         need = math.ceil((0.75 * total - attended) / 0.25) if not is_safe and total > 0 else 0
         
@@ -72,21 +70,60 @@ def enrich_student_data(rollno):
             calendar_data.append({"date": r.date, "status": stat_map.get(r.status, 0)})
 
         enriched.append({
-            **meta, 
-            "teacher": teacher_name,
-            "calendar": calendar_data, 
+            **meta, "teacher": teacher_name, "calendar": calendar_data, 
             "attended": attended, "total": total, "percent": pct, 
             "is_safe": is_safe, "bunk_count": max(0, bunk), "need_count": max(0, need)
         })
     return enriched
 
-# ── Routes ──
+# ── Auth Routes ──
 
 @app.route("/")
 def index():
     if "user" in session:
         return redirect(url_for("student_dashboard" if session["role"] == "student" else "teacher_dashboard"))
     return render_template("role_select.html")
+
+@app.route("/signup/student", methods=["GET", "POST"])
+def signup_student():
+    if request.method == "POST":
+        rollno = request.form.get("rollno").strip()
+        if Student.query.filter_by(rollno=rollno).first():
+            flash("Roll Number already registered", "error")
+            return redirect(url_for("signup_student"))
+        
+        new_s = Student(
+            rollno=rollno,
+            name=request.form.get("name"),
+            email=request.form.get("email"),
+            password=request.form.get("password"),
+            course=request.form.get("course", "B.Tech CSE")
+        )
+        db.session.add(new_s)
+        db.session.commit()
+        flash("Registration successful! Please login.", "success")
+        return redirect(url_for("login_student"))
+    return render_template("signup_student.html")
+
+@app.route("/signup/teacher", methods=["GET", "POST"])
+def signup_teacher():
+    if request.method == "POST":
+        empid = request.form.get("empid").strip()
+        if Teacher.query.filter_by(empid=empid).first():
+            flash("Employee ID already registered", "error")
+            return redirect(url_for("signup_teacher"))
+        
+        new_t = Teacher(
+            empid=empid,
+            name=request.form.get("name"),
+            password=request.form.get("password"),
+            subject_code=request.form.get("subject_code")
+        )
+        db.session.add(new_t)
+        db.session.commit()
+        flash("Registration successful!", "success")
+        return redirect(url_for("login_teacher"))
+    return render_template("signup_teacher.html", subjects=SUBJECTS_META.values())
 
 @app.route("/login/student", methods=["GET", "POST"])
 def login_student():
@@ -104,14 +141,14 @@ def login_teacher():
         user = Teacher.query.filter_by(empid=request.form.get("empid"), password=request.form.get("password")).first()
         if user:
             session.update({
-                "user": user.empid, 
-                "role": "teacher", 
-                "name": user.name, 
-                "subject_code": user.subject_code 
+                "user": user.empid, "role": "teacher", 
+                "name": user.name, "subject_code": user.subject_code 
             })
             return redirect(url_for("teacher_dashboard"))
         flash("Invalid Credentials", "error")
     return render_template("login_teacher.html")
+
+# ── Main Dashboards ──
 
 @app.route("/dashboard")
 def student_dashboard():
@@ -166,28 +203,20 @@ def teacher_mark():
         
     return render_template("teacher_mark.html", subject=SUBJECTS_META.get(teacher.subject_code), students=students, today=date.today().isoformat())
 
-# ── NEW ROUTE: ENROLLED STUDENTS ──
 @app.route("/teacher/students")
 def teacher_students():
     if session.get("role") != "teacher": return redirect(url_for("index"))
-    
     raw_students = Student.query.all()
     processed_students = []
-    
     for s in raw_students:
         data = enrich_student_data(s.rollno)
         s_dict = {
-            "name": s.name, 
-            "rollno": s.rollno, 
-            "course": s.course, 
+            "name": s.name, "rollno": s.rollno, "course": s.course, 
             "subject_pcts": {item['code']: item['percent'] for item in data}, 
             "overall_pct": round(sum(item['percent'] for item in data) / len(data), 1) if data else 0
         }
         processed_students.append(s_dict)
-    
-    return render_template("teacher_students.html", 
-                           students=processed_students, 
-                           subjects=list(SUBJECTS_META.values()))
+    return render_template("teacher_students.html", students=processed_students, subjects=list(SUBJECTS_META.values()))
 
 @app.route("/logout")
 def logout():
