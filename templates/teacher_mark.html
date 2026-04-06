@@ -3,7 +3,17 @@
 
 {% block extra_head %}
 <style>
-  /* Styling for the read-only subject display */
+  /* Forces the calendar icon to be white/visible */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
   .subject-badge-container {
     background: rgba(77, 158, 255, 0.05);
     border: 1px solid rgba(77, 158, 255, 0.2);
@@ -14,34 +24,41 @@
     gap: 4px;
   }
 
-  .field-readonly {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+  /* Status Button Base Transitions */
+  .status-btn {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, .05);
     color: var(--subtext);
-    padding: 12px;
-    font-weight: 600;
-    cursor: not-allowed;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page" style="max-width:800px; margin: 0 auto; padding: 40px 20px;">
-  <div style="margin-bottom:32px;">
-    <h1 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:6px;">Mark Attendance</h1>
-    <p style="font-size:14px;color:var(--subtext);">Recording attendance for your assigned academic module</p>
+<div class="page" style="max-width:850px; margin: 0 auto; padding: 40px 20px;">
+  <div style="margin-bottom:32px; display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+      <h1 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:6px;">Mark Attendance</h1>
+      <p style="font-size:14px;color:var(--subtext);">Select date and update student status</p>
+    </div>
   </div>
 
-  <div class="stat-tile" style="padding:32px; text-align: left;">
+  <div class="stat-tile" style="padding:32px; text-align: left; border-radius: 24px; border: 1px solid var(--border);">
     <form method="POST" action="/teacher/mark" style="display:flex;flex-direction:column;gap:24px;">
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div style="display:grid;grid-template-columns: 1.2fr 0.8fr;gap:20px;">
         <div>
           <label class="field-label">Assigned Subject</label>
           <div class="subject-badge-container">
-            <span style="font-size: 11px; color: var(--blue); font-weight: 800; text-transform: uppercase;">{{ subject.code }}</span>
-            <span style="font-size: 16px; font-weight: 700; color: white;">{{ subject.name }}</span>
+            <span style="font-size: 10px; color: var(--blue); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">{{ subject.code }}</span>
+            <span style="font-size: 18px; font-weight: 800; color: white;">{{ subject.name }}</span>
           </div>
           <input type="hidden" name="subject" value="{{ subject.code }}">
         </div>
@@ -49,7 +66,7 @@
         <div>
           <label class="field-label" for="date">Attendance Date</label>
           <input id="date" name="date" type="date" class="field" value="{{ today }}" 
-                 style="background-color: var(--bg); color: var(--text); border: 1px solid var(--border); height: 58px;" required>
+                 style="background-color: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); height: 62px; font-family: 'JetBrains Mono', monospace; padding: 0 16px;" required>
         </div>
       </div>
 
@@ -57,31 +74,33 @@
         <label class="field-label" style="margin-bottom:16px;display:block;">Student Roster</label>
         <div style="display:flex;flex-direction:column;gap:12px;">
           {% for st in students %}
-          <div style="display:flex;align-items:center;justify-content:space-between;
-                      background:rgba(255,255,255,.03);border:1px solid var(--border);
-                      border-radius:12px;padding:16px 20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between; 
+                      background:rgba(255,255,255,.02); border:1px solid var(--border); 
+                      border-radius:16px; padding:14px 20px;">
             <div>
               <p style="font-weight:700;font-size:15px;color:var(--text); margin:0;">{{ st.name }}</p>
-              <p style="font-size:11px;color:var(--subtext);font-family:'JetBrains Mono',monospace; margin-top:2px;">{{ st.rollno }}</p>
+              <p style="font-size:11px;color:var(--subtext);font-family:'JetBrains Mono',monospace; margin-top:2px; opacity: 0.6;">{{ st.rollno }}</p>
             </div>
             
-            <div style="display:flex;gap:10px;" x-data="{ status: 'present' }">
-              <button type="button"
+            <div style="display:flex;gap:8px;" x-data="{ status: 'present' }">
+              <button type="button" class="status-btn"
                       @click="status = 'present'"
-                      :style="status === 'present' ? 'background:rgba(61,255,160,.15);color:#3dffa0;border-color:rgba(61,255,160,.4);' : ''"
-                      style="padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;
-                             background:rgba(255,255,255,.05);color:var(--subtext);
-                             border:1px solid var(--border);cursor:pointer;transition:all .2s;">
+                      :style="status === 'present' ? 'background:rgba(61,255,160,.12);color:#3dffa0;border-color:rgba(61,255,160,.3);' : ''">
                 ✓ Present
               </button>
-              <button type="button"
+
+              <button type="button" class="status-btn"
                       @click="status = 'absent'"
-                      :style="status === 'absent' ? 'background:rgba(255,77,109,.15);color:#ff4d6d;border-color:rgba(255,77,109,.35);' : ''"
-                      style="padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;
-                             background:rgba(255,255,255,.05);color:var(--subtext);
-                             border:1px solid var(--border);cursor:pointer;transition:all .2s;">
+                      :style="status === 'absent' ? 'background:rgba(255,77,109,.12);color:#ff4d6d;border-color:rgba(255,77,109,.3);' : ''">
                 ✕ Absent
               </button>
+
+              <button type="button" class="status-btn"
+                      @click="status = 'holiday'"
+                      :style="status === 'holiday' ? 'background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.4);' : ''">
+                GH (Holiday)
+              </button>
+
               <input type="hidden" :name="'attendance_{{ st.rollno }}'" :value="status">
             </div>
           </div>
@@ -91,9 +110,11 @@
 
       <div style="display:flex;gap:16px;justify-content:flex-end;margin-top:12px;border-top:1px solid var(--border);padding-top:24px;">
         <a href="/teacher" style="text-decoration:none;">
-          <button type="button" class="btn-ghost" style="padding: 12px 24px;">Cancel</button>
+          <button type="button" class="btn-ghost" style="padding: 12px 24px; font-weight: 700;">Cancel</button>
         </a>
-        <button type="submit" class="btn-blue" style="padding: 12px 32px;">Save Attendance</button>
+        <button type="submit" class="btn-blue" style="padding: 12px 32px; font-weight: 800; box-shadow: 0 4px 14px rgba(77, 158, 255, 0.3);">
+          Confirm & Save
+        </button>
       </div>
     </form>
   </div>
